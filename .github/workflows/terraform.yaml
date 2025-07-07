@@ -30,4 +30,11 @@ jobs:
     - name: terraform
       uses: hashicorp/setup-terraform@v3
     - name: terraform init
+      shell: bash
       run: terraform init -backend-config=storage_account_name=satfstateea -backend-config=container_name=tfstate -backend-config='key=${{ secrets.TERRAFORM_BACKEND_FILENAME }}'
+    - name: terraform plan
+      shell: bash
+      env:
+        TF_VAR_apex: ${{ vars.APEX_DOMAINS }}
+        TF_VAR_github: ${{ github.repository }}
+      run: terraform plan
