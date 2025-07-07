@@ -5,7 +5,6 @@ on:
 
 permissions:
   id-token: write
-  contents: read
 
 jobs:
   plan:
@@ -20,6 +19,11 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v4
+    - name: terraform
+      uses: hashicorp/setup-terraform@v3
+    - name: terraform fmt
+      shell: bash
+      run: terraform fmt -check -diff
     - name: login
       uses: azure/login@v2
       with:
@@ -27,14 +31,58 @@ jobs:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    - name: terraform
-      uses: hashicorp/setup-terraform@v3
     - name: terraform init
       shell: bash
-      run: terraform init -backend-config=storage_account_name=satfstateea -backend-config=container_name=tfstate -backend-config='key=${{ secrets.TERRAFORM_BACKEND_FILENAME }}'
+      run: |
+        terraform init -backend-config=storage_account_name=satfstateea -backend-config=container_name=tfstate -backend-config='key=${{ secrets.TERRAFORM_BACKEND_FILENAME }}'
     - name: terraform plan
+      id: plan
       shell: bash
       env:
         TF_VAR_apex: ${{ vars.APEX_DOMAINS }}
         TF_VAR_github: ${{ github.repository }}
-      run: terraform plan
+      run: |
+        exitcode=0
+        terraform plan -detailed-exitcode || exitcode=$?
+        cat >>"${GITHUB_OUTPUT}" <<<"exitcode=${exitcode}"
+        if [ $exitcode -eq 2 ]
+        then
+            exitcode=0
+        fi
+        exit "${exitcode}"
+    outputs:
+      plan: ${{ steps.plan.outputs.exitcode }}
+  apply:
+    runs-on: ubuntu-latest
+    needs: plan
+    if: needs.plan.outputs.plan == '2'
+    environment: devops
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      TF_INPUT: 0
+      TF_LOG: INFO
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: terraform
+      uses: hashicorp/setup-terraform@v3
+    - name: login
+      uses: azure/login@v2
+      with:
+        environment: azurecloud
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    - name: terraform init
+      shell: bash
+      run: |
+        terraform init -backend-config=storage_account_name=satfstateea -backend-config=container_name=tfstate -backend-config='key=${{ secrets.TERRAFORM_BACKEND_FILENAME }}'
+    - name: terraform apply
+      shell: bash
+      env:
+        TF_VAR_apex: ${{ vars.APEX_DOMAINS }}
+        TF_VAR_github: ${{ github.repository }}
+      run: |
+        terraform apply -auto-approve
