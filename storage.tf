@@ -31,16 +31,16 @@ resource "azurerm_storage_account" "tfstate" {
     last_access_time_enabled      = true
 
     delete_retention_policy {
-      days                     = 15
+      days                     = 30
       permanent_delete_enabled = false
     }
 
     restore_policy {
-      days = 14
+      days = 28
     }
 
     container_delete_retention_policy {
-      days = 15
+      days = 30
     }
   }
 

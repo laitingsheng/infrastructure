@@ -17,12 +17,16 @@ resource "azurerm_dns_txt_record" "apex" {
   zone_name           = azurerm_dns_zone.apex[each.key].name
   ttl                 = 3600
 
-  dynamic "record" {
-    for_each = each.value
+  record {
+    value = "apple-domain=${each.value.apple}"
+  }
 
-    content {
-      value = "${record.key}=${record.value}"
-    }
+  record {
+    value = "_github-pages-challenge-${var.github-username}=${each.value.github}"
+  }
+
+  record {
+    value = "MS=${each.value.microsoft}"
   }
 
   record {

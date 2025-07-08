@@ -11,6 +11,10 @@ variable "apex" {
   })
 }
 
-variable "github" {
+variable "github-username" {
+  type = string
+}
+
+variable "github-repository" {
   type = string
 }

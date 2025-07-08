@@ -32,6 +32,16 @@ provider "azurerm" {
   storage_use_azuread             = true
 
   features {
+    key_vault {
+      purge_soft_delete_on_destroy               = false
+      purge_soft_deleted_certificates_on_destroy = false
+      purge_soft_deleted_keys_on_destroy         = false
+      purge_soft_deleted_secrets_on_destroy      = false
+      recover_soft_deleted_certificates          = true
+      recover_soft_deleted_keys                  = true
+      recover_soft_deleted_secrets               = true
+    }
+
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
@@ -63,5 +73,10 @@ resource "azurerm_resource_group" "connectivity" {
 
 resource "azurerm_resource_group" "tfstate" {
   name     = "rg-tfstate-ea"
+  location = "eastasia"
+}
+
+resource "azurerm_resource_group" "main" {
+  name     = "rg-base-ea"
   location = "eastasia"
 }

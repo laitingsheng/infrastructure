@@ -46,7 +46,7 @@ resource "azuread_application_federated_identity_credential" "devops" {
   description    = "GitHub Actions"
   display_name   = "fic-github"
   issuer         = "https://token.actions.githubusercontent.com"
-  subject        = "repo:${var.github}:environment:devops"
+  subject        = "repo:${var.github-repository}:environment:devops"
 
   lifecycle {
     prevent_destroy = true
