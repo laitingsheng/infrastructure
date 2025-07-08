@@ -22,15 +22,24 @@ resource "azurerm_dns_txt_record" "apex" {
   }
 
   record {
-    value = "_github-pages-challenge-${var.github-username}=${each.value.github}"
-  }
-
-  record {
     value = "MS=${each.value.microsoft}"
   }
 
   record {
     value = "v=spf1 ${join(" ", [for spf in var.apex.spfs : "include:${spf}"])} ~all"
+  }
+}
+
+resource "azurerm_dns_txt_record" "apex-github-pages" {
+  for_each = var.apex.suffices
+
+  name                = "_github-pages-challenge-${var.github-username}"
+  resource_group_name = azurerm_dns_zone.apex[each.key].resource_group_name
+  zone_name           = azurerm_dns_zone.apex[each.key].name
+  ttl                 = 3600
+
+  record {
+    value = each.value.github
   }
 }
 
