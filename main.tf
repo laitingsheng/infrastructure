@@ -6,6 +6,7 @@ terraform {
       source  = "hashicorp/azuread"
       version = "~> 3.0"
     }
+
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
@@ -36,7 +37,7 @@ provider "azurerm" {
     }
 
     subscription {
-      prevent_cancellation_on_destroy = false
+      prevent_cancellation_on_destroy = true
     }
   }
 }
@@ -44,6 +45,12 @@ provider "azurerm" {
 data "azuread_client_config" "main" {}
 
 data "azurerm_client_config" "main" {}
+
+resource "azurerm_subscription" "main" {
+  subscription_name = "foundation"
+  alias             = "foundation"
+  subscription_id   = data.azurerm_client_config.main.subscription_id
+}
 
 data "azurerm_subscription" "main" {
   subscription_id = data.azurerm_client_config.main.subscription_id
