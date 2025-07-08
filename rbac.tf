@@ -8,6 +8,9 @@ resource "azurerm_role_assignment" "alias-main" {
 resource "azurerm_role_assignment" "subscription-main" {
   for_each = toset([
     "Contributor",
+    "Key Vault Certificates Officer",
+    "Key Vault Crypto Officer",
+    "Key Vault Secrets Officer",
     "Storage Blob Data Contributor",
   ])
 
