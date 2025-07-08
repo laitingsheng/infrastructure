@@ -1,20 +1,20 @@
-variable "tfstate" {
-  type = string
-}
+variable "mca" {
+  sensitive = true
 
-variable "apex" {
   type = object({
-    name        = string
-    suffices    = map(map(string))
-    spfs        = list(string)
-    mailservers = list(string)
+    account = string
+    profile = string
+    invoice = string
   })
 }
 
-variable "github-username" {
+variable "domain" {
   type = string
 }
 
-variable "github-repository" {
-  type = string
+variable "github" {
+  type = object({
+    username   = string
+    repository = string
+  })
 }

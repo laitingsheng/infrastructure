@@ -1,12 +1,12 @@
-resource "azurerm_storage_account" "tfstate" {
-  name                              = "sa${var.tfstate}ea"
-  resource_group_name               = azurerm_resource_group.tfstate.name
-  location                          = azurerm_resource_group.tfstate.location
+resource "azurerm_storage_account" "main" {
+  name                              = "sabaseea"
+  resource_group_name               = azurerm_resource_group.main.name
+  location                          = azurerm_resource_group.main.location
   account_kind                      = "StorageV2"
   account_tier                      = "Standard"
   account_replication_type          = "GZRS"
   cross_tenant_replication_enabled  = false
-  access_tier                       = "Cold"
+  access_tier                       = "Hot"
   https_traffic_only_enabled        = true
   min_tls_version                   = "TLS1_2"
   allow_nested_items_to_be_public   = false
@@ -15,7 +15,7 @@ resource "azurerm_storage_account" "tfstate" {
   default_to_oauth_authentication   = true
   is_hns_enabled                    = false
   nfsv3_enabled                     = false
-  large_file_share_enabled          = false
+  large_file_share_enabled          = true
   local_user_enabled                = false
   queue_encryption_key_type         = "Account"
   table_encryption_key_type         = "Account"
@@ -56,8 +56,8 @@ resource "azurerm_storage_account" "tfstate" {
 }
 
 resource "azurerm_storage_container" "tfstate" {
-  name                  = var.tfstate
-  storage_account_id    = azurerm_storage_account.tfstate.id
+  name                  = "tfstate"
+  storage_account_id    = azurerm_storage_account.main.id
   container_access_type = "private"
 
   lifecycle {

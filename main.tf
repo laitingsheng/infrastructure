@@ -2,6 +2,11 @@ terraform {
   required_version = "~> 1.0"
 
   required_providers {
+    acme = {
+      source  = "vancluever/acme"
+      version = "~> 2.0"
+    }
+
     azuread = {
       source  = "hashicorp/azuread"
       version = "~> 3.0"
@@ -11,23 +16,27 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+
+    namecheap = {
+      source  = "namecheap/namecheap"
+      version = "~> 2.0"
+    }
   }
 
   backend "azurerm" {
-    use_azuread_auth = true
-    use_cli          = true
-    environment      = "public"
+    use_azuread_auth     = true
+    storage_account_name = "sabaseea"
+    container_name       = "tfstate"
   }
 }
 
-provider "azuread" {
-  use_cli     = true
-  environment = "public"
+provider "acme" {
+  server_url = "https://acme-v02.api.letsencrypt.org/directory"
 }
 
+provider "azuread" {}
+
 provider "azurerm" {
-  use_cli                         = true
-  environment                     = "public"
   resource_provider_registrations = "extended"
   storage_use_azuread             = true
 
@@ -47,7 +56,7 @@ provider "azurerm" {
     }
 
     subscription {
-      prevent_cancellation_on_destroy = true
+      prevent_cancellation_on_destroy = false
     }
   }
 }
@@ -56,27 +65,31 @@ data "azuread_client_config" "main" {}
 
 data "azurerm_client_config" "main" {}
 
+data "azurerm_billing_mca_account_scope" "main" {
+  billing_account_name = var.mca.account
+  billing_profile_name = var.mca.profile
+  invoice_section_name = var.mca.invoice
+}
+
 resource "azurerm_subscription" "main" {
   subscription_name = "foundation"
   alias             = "foundation"
-  subscription_id   = data.azurerm_client_config.main.subscription_id
+  billing_scope_id  = data.azurerm_billing_mca_account_scope.main.id
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 data "azurerm_subscription" "main" {
-  subscription_id = data.azurerm_client_config.main.subscription_id
-}
-
-resource "azurerm_resource_group" "connectivity" {
-  name     = "rg-connectivity-ea"
-  location = "eastasia"
-}
-
-resource "azurerm_resource_group" "tfstate" {
-  name     = "rg-tfstate-ea"
-  location = "eastasia"
+  subscription_id = azurerm_subscription.main.subscription_id
 }
 
 resource "azurerm_resource_group" "main" {
   name     = "rg-base-ea"
   location = "eastasia"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
