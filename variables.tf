@@ -1,3 +1,7 @@
+variable "tfstate" {
+  type = string
+}
+
 variable "apex" {
   type = object({
     name        = string

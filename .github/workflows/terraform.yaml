@@ -8,12 +8,14 @@ permissions:
 
 env:
   ARM_USE_OIDC: 'true'
-  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_CLIENT_ID: '${{ secrets.AZURE_CLIENT_ID }}'
+  ARM_TENANT_ID: '${{ secrets.AZURE_TENANT_ID }}'
+  ARM_SUBSCRIPTION_ID: '${{ secrets.AZURE_SUBSCRIPTION_ID }}'
+  TF_CLI_ARGS_init: '-backend-config=storage_account_name=sa${{ vars.TERRAFORM_BACKEND_CONTAINER }}ea -backend-config=container_name=${{ vars.TERRAFORM_BACKEND_CONTAINER }} -backend-config=key=${{ secrets.TERRAFORM_BACKEND_FILENAME }}'
   TF_INPUT: 0
-  TF_VAR_apex: ${{ vars.APEX_DOMAINS }}
-  TF_VAR_github: ${{ github.repository }}
+  TF_VAR_tfstate: '${{ vars.TERRAFORM_BACKEND_CONTAINER }}'
+  TF_VAR_apex: '${{ vars.APEX_DOMAINS }}'
+  TF_VAR_github: '${{ github.repository }}'
 
 jobs:
   plan:
@@ -29,13 +31,7 @@ jobs:
       run: terraform fmt -check -diff
     - name: terraform init
       shell: bash
-      run: |
-        cat >backend.tfvars <<EOF
-        storage_account_name = "satfstateea"
-        container_name       = "tfstate"
-        key                  = "${{ secrets.TERRAFORM_BACKEND_FILENAME }}"
-        EOF
-        terraform init -backend-config=backend.tfvars
+      run: terraform init
     - name: terraform plan
       id: plan
       shell: bash
@@ -62,14 +58,7 @@ jobs:
       uses: hashicorp/setup-terraform@v3
     - name: terraform init
       shell: bash
-      run: |
-        cat >backend.tfvars <<EOF
-        storage_account_name = "satfstateea"
-        container_name       = "tfstate"
-        key                  = "${{ secrets.TERRAFORM_BACKEND_FILENAME }}"
-        EOF
-        terraform init -backend-config=backend.tfvars
+      run: terraform init
     - name: terraform apply
       shell: bash
-      run: |
-        terraform apply -auto-approve
+      run: terraform apply -auto-approve

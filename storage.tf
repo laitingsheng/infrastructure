@@ -1,5 +1,5 @@
 resource "azurerm_storage_account" "tfstate" {
-  name                              = "satfstateea"
+  name                              = "sa${var.tfstate}ea"
   resource_group_name               = azurerm_resource_group.tfstate.name
   location                          = azurerm_resource_group.tfstate.location
   account_kind                      = "StorageV2"
@@ -56,7 +56,7 @@ resource "azurerm_storage_account" "tfstate" {
 }
 
 resource "azurerm_storage_container" "tfstate" {
-  name                  = "tfstate"
+  name                  = var.tfstate
   storage_account_id    = azurerm_storage_account.tfstate.id
   container_access_type = "private"
 
