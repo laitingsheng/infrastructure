@@ -26,7 +26,7 @@ resource "azurerm_dns_txt_record" "apex" {
   }
 
   record {
-    value = "v=spf1 ${join(" ", [for spf in var.apex.spfs : "include:${spf}"])} ~all"
+    value = "v=spf1 mx ${join(" ", [for spf in var.apex.spfs : "include:${spf}"])} -all"
   }
 }
 

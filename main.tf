@@ -2,6 +2,11 @@ terraform {
   required_version = "~> 1.0"
 
   required_providers {
+    acme = {
+      source  = "vancluever/acme"
+      version = "~> 2.0"
+    }
+
     azuread = {
       source  = "hashicorp/azuread"
       version = "~> 3.0"
@@ -16,18 +21,19 @@ terraform {
   backend "azurerm" {
     use_azuread_auth = true
     use_cli          = true
-    environment      = "public"
   }
 }
 
+provider "acme" {
+  server_url = "https://acme.zerossl.com/v2/DV90"
+}
+
 provider "azuread" {
-  use_cli     = true
-  environment = "public"
+  use_cli = true
 }
 
 provider "azurerm" {
   use_cli                         = true
-  environment                     = "public"
   resource_provider_registrations = "extended"
   storage_use_azuread             = true
 
