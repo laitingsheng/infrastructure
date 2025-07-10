@@ -1,51 +1,44 @@
-resource "tls_private_key" "acme" {
-  algorithm   = "ECDSA"
-  ecdsa_curve = "P384"
-}
-
 resource "acme_registration" "main" {
-  account_key_pem = tls_private_key.acme.private_key_pem
-  email_address   = "acme@${var.apex.name}.io"
-
-  external_account_binding {
-    key_id      = data.azurerm_key_vault_secret.acme-eab-key-id.value
-    hmac_base64 = data.azurerm_key_vault_secret.acme-eab-hmac.value
-  }
+  account_key_algorithm   = "ECDSA"
+  account_key_ecdsa_curve = "P384"
+  email_address           = "acme@${var.domain}.io"
 }
 
-resource "tls_private_key" "csr" {
-  algorithm   = "ECDSA"
-  ecdsa_curve = "P384"
-}
+resource "random_password" "p12" {
+  length      = 64
+  min_upper   = 1
+  min_lower   = 1
+  min_numeric = 1
+  min_special = 1
 
-resource "tls_cert_request" "apex" {
-  for_each = var.apex.suffices
-
-  private_key_pem = tls_private_key.csr.private_key_pem
-  dns_names       = ["${var.apex.name}.${each.key}", "*.${var.apex.name}.${each.key}"]
-
-  subject {
-    common_name   = "${var.apex.name}.${each.key}"
-    email_address = "certificate@${var.apex.name}.${each.key}"
+  keepers = {
+    year = formatdate("YYYY", plantimestamp())
   }
 }
 
 resource "acme_certificate" "apex" {
-  for_each = var.apex.suffices
+  for_each = azurerm_dns_zone.apex
 
-  account_key_pem               = tls_private_key.acme.private_key_pem
-  certificate_request_pem       = tls_cert_request.apex[each.key].cert_request_pem
-  min_days_remaining            = 30
+  account_key_pem               = acme_registration.main.account_key_pem
+  common_name                   = each.value.name
+  key_type                      = "P384"
+  min_days_remaining            = 40
+  certificate_p12_password      = random_password.p12.result
+  profile                       = "tlsserver"
   revoke_certificate_on_destroy = true
-  revoke_certificate_reason     = "unspecified"
+  revoke_certificate_reason     = "superseded"
+
+  subject_alternative_names = [
+    each.value.name,
+    "*.${each.value.name}",
+  ]
 
   dns_challenge {
     provider = "azuredns"
 
     config = {
-      AZURE_AUTH_METHOD    = "cli"
       AZURE_RESOURCE_GROUP = azurerm_resource_group.connectivity.name
-      AZURE_ZONE_NAME      = "${var.apex.name}.${each.key}"
+      AZURE_ZONE_NAME      = each.value.name
     }
   }
 }

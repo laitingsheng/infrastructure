@@ -16,24 +16,25 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+
+    namecheap = {
+      source  = "namecheap/namecheap"
+      version = "~> 2.0"
+    }
   }
 
   backend "azurerm" {
     use_azuread_auth = true
-    use_cli          = true
   }
 }
 
 provider "acme" {
-  server_url = "https://acme.zerossl.com/v2/DV90"
+  server_url = "https://acme-v02.api.letsencrypt.org/directory"
 }
 
-provider "azuread" {
-  use_cli = true
-}
+provider "azuread" {}
 
 provider "azurerm" {
-  use_cli                         = true
   resource_provider_registrations = "extended"
   storage_use_azuread             = true
 

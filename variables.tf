@@ -2,19 +2,21 @@ variable "tfstate" {
   type = string
 }
 
-variable "apex" {
+variable "domain" {
+  type = string
+}
+
+variable "spfs" {
+  type = list(string)
+}
+
+variable "mailservers" {
+  type = list(string)
+}
+
+variable "github" {
   type = object({
-    name        = string
-    suffices    = map(map(string))
-    spfs        = list(string)
-    mailservers = list(string)
+    username   = string
+    repository = string
   })
-}
-
-variable "github-username" {
-  type = string
-}
-
-variable "github-repository" {
-  type = string
 }

@@ -117,3 +117,19 @@ resource "azurerm_storage_account" "main" {
     choice                      = "MicrosoftRouting"
   }
 }
+
+resource "azurerm_storage_container" "pem" {
+  name                  = "pem"
+  storage_account_id    = azurerm_storage_account.main.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_blob" "pem" {
+  for_each = {}
+
+  name                   = "${each.key}.pem"
+  storage_account_name   = azurerm_storage_account.main.name
+  storage_container_name = azurerm_storage_container.pem.name
+  type                   = "Block"
+  access_tier            = "Archive"
+}

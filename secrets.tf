@@ -17,12 +17,12 @@ resource "azurerm_key_vault_certificate_contacts" "main" {
   key_vault_id = azurerm_key_vault.main.id
 
   contact {
-    email = "expiry@${var.apex.name}.io"
+    email = "expiry@${var.domain}.io"
   }
 }
 
 resource "azurerm_key_vault_certificate" "apex-io" {
-  name         = "${var.apex.name}-io-wildcard"
+  name         = "${var.domain}-io-wildcard"
   key_vault_id = azurerm_key_vault.main.id
 
   certificate_policy {
@@ -66,12 +66,12 @@ resource "azurerm_key_vault_certificate" "apex-io" {
         "1.3.6.1.5.5.7.3.8", # Time Stamping
       ]
 
-      subject = "CN=*.${var.apex.name}.io"
+      subject = "CN=*.${var.domain}.io"
 
       subject_alternative_names {
         dns_names = [
-          "*.${var.apex.name}.io",
-          "${var.apex.name}.io",
+          "*.${var.domain}.io",
+          "${var.domain}.io",
         ]
       }
 
@@ -80,28 +80,15 @@ resource "azurerm_key_vault_certificate" "apex-io" {
   }
 }
 
-data "azurerm_key_vault_secret" "acme-eab-key-id" {
-  key_vault_id = azurerm_key_vault.main.id
-  name         = "zerossl-acme-eab-key-id"
-}
-
-data "azurerm_key_vault_secret" "acme-eab-hmac" {
-  key_vault_id = azurerm_key_vault.main.id
-  name         = "zerossl-acme-eab-hmac"
-}
-
 resource "azurerm_key_vault_certificate" "apex" {
-  for_each = var.apex.suffices
+  for_each = acme_certificate.apex
 
-  name         = "${var.apex.name}-${each.key}-wildcard"
+  name         = "${var.domain}-${each.key}-wildcard"
   key_vault_id = azurerm_key_vault.main.id
 
   certificate {
-    contents = join("\n", [
-      acme_certificate.apex[each.key].certificate_pem,
-      acme_certificate.apex[each.key].issuer_pem,
-      tls_private_key.csr.private_key_pem_pkcs8,
-    ])
+    contents = each.value.certificate_p12
+    password = each.value.certificate_p12_password
   }
 
   certificate_policy {
@@ -113,7 +100,7 @@ resource "azurerm_key_vault_certificate" "apex" {
       key_type   = "EC"
       curve      = "P-384"
       exportable = true
-      reuse_key  = true
+      reuse_key  = false
     }
 
     lifetime_action {
@@ -122,12 +109,12 @@ resource "azurerm_key_vault_certificate" "apex" {
       }
 
       trigger {
-        days_before_expiry = acme_certificate.apex[each.key].min_days_remaining
+        days_before_expiry = each.value.min_days_remaining
       }
     }
 
     secret_properties {
-      content_type = "application/x-pem-file"
+      content_type = "application/x-pkcs12"
     }
   }
 }
