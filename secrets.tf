@@ -21,7 +21,7 @@ resource "azurerm_key_vault_certificate_contacts" "main" {
   }
 }
 
-resource "azurerm_key_vault_certificate" "apex-io" {
+resource "azurerm_key_vault_certificate" "primary" {
   name         = "${var.domain}-io-wildcard"
   key_vault_id = azurerm_key_vault.main.id
 
@@ -76,45 +76,6 @@ resource "azurerm_key_vault_certificate" "apex-io" {
       }
 
       validity_in_months = 12
-    }
-  }
-}
-
-resource "azurerm_key_vault_certificate" "apex" {
-  for_each = acme_certificate.apex
-
-  name         = "${var.domain}-${each.key}-wildcard"
-  key_vault_id = azurerm_key_vault.main.id
-
-  certificate {
-    contents = each.value.certificate_p12
-    password = each.value.certificate_p12_password
-  }
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Unknown"
-    }
-
-    key_properties {
-      key_type   = "EC"
-      curve      = "P-384"
-      exportable = true
-      reuse_key  = false
-    }
-
-    lifetime_action {
-      action {
-        action_type = "EmailContacts"
-      }
-
-      trigger {
-        days_before_expiry = each.value.min_days_remaining
-      }
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
     }
   }
 }

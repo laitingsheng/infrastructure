@@ -1,5 +1,11 @@
-variable "tfstate" {
-  type = string
+variable "mca" {
+  sensitive = true
+
+  type = object({
+    account = string
+    profile = string
+    invoice = string
+  })
 }
 
 variable "domain" {

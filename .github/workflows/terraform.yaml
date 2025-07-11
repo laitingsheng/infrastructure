@@ -14,9 +14,10 @@ env:
   ARM_CLIENT_ID: '${{ secrets.AZURE_CLIENT_ID }}'
   ARM_TENANT_ID: '${{ secrets.AZURE_TENANT_ID }}'
   ARM_SUBSCRIPTION_ID: '${{ secrets.AZURE_SUBSCRIPTION_ID }}'
-  TF_CLI_ARGS_init: '-backend-config=storage_account_name=sa${{ vars.TERRAFORM_BACKEND_CONTAINER }}ea -backend-config=container_name=${{ vars.TERRAFORM_BACKEND_CONTAINER }} -backend-config=key=${{ secrets.TERRAFORM_BACKEND_FILENAME }}'
+  CLOUDFLARE_API_TOKEN: '${{ secrets.CLOUDFLARE_API_TOKEN }}'
+  TF_CLI_ARGS_init: '-backend-config=key=${{ secrets.TERRAFORM_BACKEND_FILENAME }}'
   TF_INPUT: 0
-  TF_VAR_tfstate: '${{ vars.TERRAFORM_BACKEND_CONTAINER }}'
+  TF_VAR_mca: '{"account":"${{ secrets.AZURE_MCA_ACCOUNT }}","profile":"${{ secrets.AZURE_MCA_PROFILE }}","invoice":"${{ secrets.AZURE_MCA_INVOICE }}"}'
   TF_VAR_domain: '${{ vars.APEX_DOMAIN }}'
   TF_VAR_spfs: '${{ vars.APEX_SPFS }}'
   TF_VAR_mailservers: '${{ vars.APEX_MAILSERVERS }}'
