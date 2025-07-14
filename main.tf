@@ -41,6 +41,10 @@ provider "azurerm" {
   storage_use_azuread             = true
 
   features {
+    cognitive_account {
+      purge_soft_delete_on_destroy = false
+    }
+
     key_vault {
       purge_soft_delete_on_destroy               = false
       purge_soft_deleted_certificates_on_destroy = false
@@ -92,4 +96,9 @@ resource "azurerm_resource_group" "main" {
   lifecycle {
     prevent_destroy = true
   }
+}
+
+resource "azurerm_resource_group" "cognitive" {
+  name     = "rg-cognitive-sea"
+  location = "southeastasia"
 }
