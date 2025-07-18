@@ -8,6 +8,11 @@ variable "mca" {
   })
 }
 
+variable "primary" {
+  sensitive = true
+  type      = string
+}
+
 variable "domain" {
   type = string
 }

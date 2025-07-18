@@ -17,6 +17,11 @@ terraform {
       version = "~> 4.0"
     }
 
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 5.0"
+    }
+
     namecheap = {
       source  = "namecheap/namecheap"
       version = "~> 2.0"
@@ -28,10 +33,6 @@ terraform {
     storage_account_name = "sabaseea"
     container_name       = "tfstate"
   }
-}
-
-provider "acme" {
-  server_url = "https://acme-v02.api.letsencrypt.org/directory"
 }
 
 provider "azuread" {}
@@ -63,6 +64,14 @@ provider "azurerm" {
       prevent_cancellation_on_destroy = false
     }
   }
+}
+
+provider "cloudflare" {}
+
+provider "namecheap" {
+  user_name   = var.github.username
+  api_user    = var.github.username
+  use_sandbox = false
 }
 
 data "azuread_client_config" "main" {}
@@ -101,4 +110,14 @@ resource "azurerm_resource_group" "main" {
 resource "azurerm_resource_group" "cognitive" {
   name     = "rg-cognitive-sea"
   location = "southeastasia"
+}
+
+resource "cloudflare_account" "main" {
+  name = "foundation"
+  type = "standard"
+
+  settings = {
+    abuse_contact_email = var.primary
+    enforce_twofactor   = true
+  }
 }
