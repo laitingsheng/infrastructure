@@ -64,3 +64,34 @@ resource "azurerm_storage_container" "tfstate" {
     prevent_destroy = true
   }
 }
+
+resource "cloudflare_r2_bucket" "public" {
+  account_id    = cloudflare_account.main.id
+  name          = "public"
+  jurisdiction  = "default"
+  location      = "APAC"
+  storage_class = "Standard"
+}
+
+resource "cloudflare_r2_managed_domain" "public" {
+  account_id   = cloudflare_r2_bucket.public.account_id
+  bucket_name  = cloudflare_r2_bucket.public.name
+  enabled      = false
+  jurisdiction = cloudflare_r2_bucket.public.jurisdiction
+}
+
+resource "cloudflare_r2_custom_domain" "public" {
+  for_each = {
+    io  = cloudflare_zone.io
+    dev = cloudflare_zone.dev
+    ai  = cloudflare_zone.ai
+  }
+
+  account_id   = cloudflare_r2_bucket.public.account_id
+  bucket_name  = cloudflare_r2_bucket.public.name
+  domain       = "${cloudflare_r2_bucket.public.name}.${each.value.name}"
+  enabled      = true
+  zone_id      = each.value.id
+  jurisdiction = cloudflare_r2_bucket.public.jurisdiction
+  min_tls      = "1.2"
+}
